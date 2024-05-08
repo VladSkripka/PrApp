@@ -1,0 +1,73 @@
+﻿@model IEnumerable<Microsoft.AspNetCore.Identity.IdentityUser>
+@{
+    ViewData["Title"] = "UsersInRole";
+}
+
+<h1><a class="back" onclick="history.back();">←</a> Користувачі із роллю @ViewBag.RoleName</h1>
+
+<table class="table">
+    <thead class="dark">
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Id)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.UserName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.NormalizedUserName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Email)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.PhoneNumber)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach(var user in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => user.Id)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => user.UserName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => user.NormalizedUserName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => user.Email)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => user.PhoneNumber)
+                </td>
+                <td>
+                    <a class="btn btn-outline-info" asp-action="UserDetails" asp-route-id="@user.Id">Деталі</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<style>
+    .dark {
+        color: white;
+        background-color: black;
+        border-top-left-radius: 15px;
+        border-top-right-radius: 15px;
+    }
+
+    .back {
+        font: 14pt;
+        color: red;
+        cursor: pointer;
+        text-decoration: none;
+    }
+    th, td {
+        vertical-align: middle;
+    }
+</style>

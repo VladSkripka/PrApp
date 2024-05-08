@@ -1,0 +1,93 @@
+﻿@{
+    ViewData["Title"] = "Index";
+}
+@model WebApplication2.Models.Search
+
+@using (Html.BeginForm("Search", "Search", FormMethod.Post, new { onsubmit = "return validateDates();" }))
+{
+    <div class="search-div">
+
+        <label for="departurePoint" class="form-label">Відправлення з:</label>
+        <input class="form-control" type="text" id="departurePoint" name="departurePoint" placeholder="Звідки?">
+
+        <label for="destinationPoint" class="form-label">Прибуття до:</label>
+        <input class="form-control" type="text" id="destinationPoint" name="destinationPoint" placeholder="Куди?">
+
+        <label class="control-label">Дата відправлення:</label>
+        <input asp-for="departureDate" class="form-control" placeholder="Дата відправлення" />
+
+        <label class="control-label">Дата повернення:</label>
+        <input asp-for="returnDate" class="form-control" placeholder="Дата повернення" />
+
+        <input type="hidden" id="lat" name="lat" value="">
+        <input type="hidden" id="lon" name="lon" value="">
+        <br>
+        <div class="submit-div">
+            <input class="btn-primary" id="submitbot" type="submit" value="Шукати">
+        </div>
+
+    </div>
+}
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        getLocation();
+    });
+    function validateDates() {
+        var departureDate = new Date(document.getElementById('departureDate').value);
+        var returnDate = new Date(document.getElementById('returnDate').value);
+
+        if (departureDate.getTime() === returnDate.getTime()) {
+            alert('Нажаль ви так не встигнете :)');
+            return false;
+        }
+        return true;
+        
+    }
+
+    function getLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
+        } else {
+            alert("Geolocation is not supported by this browser.");
+        }
+    }
+
+    function successCallback(position) {
+        var latitude = position.coords.latitude;
+        var longitude = position.coords.longitude;
+
+        document.getElementById("lat").value = latitude;
+        document.getElementById("lon").value = longitude
+    }
+
+    function errorCallback(error) {
+        console.error("Error getting user location:", error);
+        alert("Error getting user location. Please try again later.");
+    }
+</script>
+<style>
+    .search-div{
+        width:40%;
+        margin-left:30%;
+        padding:30px;
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .submit-div{
+        display:flex;
+
+        justify-content:center;
+    }
+    .submit-div input{
+        border-radius:5px;
+        padding:5px;
+    }
+    .submit-div input:hover{
+        color:blue;
+        background-color:white;
+        border-color:blue;
+    }
+</style>
+            

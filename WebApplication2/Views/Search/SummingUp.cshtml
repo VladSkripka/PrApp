@@ -1,0 +1,295 @@
+﻿@model IEnumerable<WebApplication2.Models.TicketModel>
+
+@{
+    ViewData["Title"] = "SummingUp";
+}
+
+
+<h1>Ваші квитки:</h1>
+<form asp-action="DownloadTicket">
+    <table class="table table-hover">
+        <thead class="thead tckt">
+            <tr>
+                <th>
+                    <label>Номер квитка</label>
+                </th>
+                <th>
+                    <label>Місце відправлення</label>
+                </th>
+                <th>
+                    <label>Місце прибуття</label>
+                </th>
+                <th>
+                    <label>Дата відправлення</label>
+                </th>
+                <th>
+                    <label>Дата прибуття</label>
+                </th>
+                <th>
+                    <label>Вагон (№)</label>
+                </th>
+                <th>
+                    <label>Місце (№)</label>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+    @foreach (var item in Model) {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ticketPID)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.departureP)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.arrivalP)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.departureD)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.arrivalD)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.carriageNumber)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.seat)
+                </td>
+            </tr>  
+    }
+        </tbody>
+    </table>
+    @{
+         var i = 0;
+    }
+    @foreach(var item in Model)
+    {
+        <br>
+        <div class="passenger-form">
+            <h3>Пасажир (@item.departureP-@item.arrivalP, вагон: @item.carriageNumber, місце: @item.seat)</h3>
+            <div class="form-group mfg">
+                <label>Прізвище:</label><br>
+                <input type="text" name="secondName" class="form-control"><br>
+                <label>Ім'я:</label><br>
+                <input type="text" name="firstName" class="form-control"><br>
+            </div>
+            <div class="form-group mfg">
+                <input type="radio" id="ageOption_1_@i" value="adult" name="passAge_@i" onclick="updateTicketType('adult', @i)">
+                <label for="ageOption_1_@i"> Дорослий</label>
+                <br>
+                <input type="radio" id="ageOption_2_@i" value="child" name="passAge_@i" onclick="updateTicketType('child', @i)">
+                <label for="ageOption_2_@i"> Дитячий</label><br>
+                <br>
+                <div id="dobField_@i" style="display: none;">
+                    <label for="dob_@i">Дата народження:</label>
+                    <input type="date" id="dob_@i" name="dob_@i" onchange="verifyAge(@i)" class="form-control">
+                </div>
+            </div>
+            <br>
+            <h2>Додаткові послуги <a href="#info" style="text-decoration:none; cursor:pointer;">*</a></h2>
+            <br>
+            <table>
+                <tr>
+                    <td>
+                        <label for="option1_@i">Кава </label> <br>
+                        <label for="option2_@i">Чай </label><br>
+                        <label for="option3_@i">Напій </label><br>
+                        <label for="option4_@i">Піцца від шефа</label><br>
+                    </td>
+                    <td>
+                        <label for="option1_@i">30 грн.</label> <br>
+                        <label for="option2_@i">35 грн.</label><br>
+                        <label for="option3_@i">30 грн.</label><br>
+                        <label for="option4_@i">120 грн.</label><br>
+                    </td>
+                    <td>
+                        <input id="option1_@i" type="checkbox" value="Coffee" data-price="30" onchange="calculateTotalPrice()"> <br>
+                        <input id="option2_@i" type="checkbox" value="Tea" data-price="35" onchange="calculateTotalPrice()"> <br>
+                        <input id="option3_@i" type="checkbox" value="Drink" data-price="30" onchange="calculateTotalPrice()"> <br>
+                        <input id="option4_@i" type="checkbox" value="Pizza from the Chief" data-price="120" onchange="calculateTotalPrice()"> <br>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        i++;
+    }
+    <br>
+    
+    <div class="pform">
+        <h3>Контактні дані</h3>
+        <div class="mfg">
+             @if (!User.Identity.IsAuthenticated)
+            {
+                <label>Email</label>
+
+                <br>
+                <input type="text" name="email" class="form-control">
+
+                <br>
+                <label>Телефон</label>
+
+                <br>
+                <input type="text" name="phone" class="form-control">
+
+                <br>
+            }
+            else if (ViewBag.isPhoneEmpty)
+            {
+                <label>Телефон</label>
+
+                <br>
+                <input type="text" name="phone" class="form-control">
+
+                <br>
+            }
+            else
+            {
+                <label @(User.Identity.IsAuthenticated ? "" : "hidden")>Ваші дані вже в нас)</label> <br>
+            }
+        </div>
+       
+    </div>
+    <br>
+    <div class="pform">
+        <h3>Остаточна сума замовлення: 
+            <span id="totalPrice" name="totalSum">@ViewBag.TotalPrice </span> грн.
+        </h3>
+        <input type="hidden" id="SelectedCarriage" name="tickets" value="@Newtonsoft.Json.JsonConvert.SerializeObject(@ViewBag.tickets)">
+        <input type="hidden" id="passengers" name="passengers" value="">
+        <input type="hidden" id="price" name="totalSum" value="@ViewBag.TotalPrice">
+        <input type="hidden" id="ticketsType" name="ticketsType" value="">
+    </div>
+    <br />
+    <div class="submit-div" style="display:flex; justify-content:center;">
+        <input class="btn-success" id="submitbot" type="submit" value="Забронювати" onclick="getPassengersNames()">
+    </div>
+    
+    
+</form>
+
+<div>
+    <span id="info">*Постільна білизна вже входить у ціну квитка</span>
+</div>
+
+<script>
+    function calculateTotalPrice() {
+        var totalPrice = @(ViewBag.TotalPrice);
+        var checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+
+        checkboxes.forEach(function (checkbox) {
+            totalPrice += parseInt(checkbox.getAttribute('data-price'));
+        });
+
+        document.getElementById('totalPrice').innerText = totalPrice;
+        document.getElementById('price').value = totalPrice;
+    }
+
+    function getPassengersNames() {
+        var passengersData = "";
+
+
+        var passengerForms = document.querySelectorAll('.passenger-form');
+
+        passengerForms.forEach(function (form, index) {
+
+            var firstNameInput = form.querySelector('input[name="firstName"]');
+            var lastNameInput = form.querySelector('input[name="secondName"]');
+
+            var firstName = firstNameInput.value.trim();
+            var lastName = lastNameInput.value.trim();
+
+            var checkboxes = form.querySelectorAll('input[type="checkbox"]:checked');
+            var mealOptions = '';
+
+            checkboxes.forEach(function (checkbox) {
+                if (checkbox.closest('.passenger-form') === form) {
+                    mealOptions += checkbox.value + ';';
+                }
+            });
+
+            mealOptions = mealOptions.slice(0, -1);
+
+            passengersData += firstName + ' ' + lastName + ':' + mealOptions;
+
+            if (index < passengerForms.length - 1) {
+                passengersData += ',';
+            }
+        });
+
+        document.getElementById('passengers').value = passengersData;
+
+        updateTicketsType();
+    }
+
+    function updateTicketType(type, index) {
+        var dobField = document.getElementById('dobField_' + index);
+        if (type === 'child') {
+            dobField.style.display = 'block';
+        } else {
+            dobField.style.display = 'none';
+        }
+        
+    }
+
+    function verifyAge(index) {
+        console.log("verifyAge");
+        var dob = document.getElementById('dob_' + index).value;
+        var dobDate = new Date(dob);
+        var now = new Date();
+        var age = now.getFullYear() - dobDate.getFullYear();
+        var monthDiff = now.getMonth() - dobDate.getMonth();
+
+        if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < dobDate.getDate())) {
+            age--;
+        }
+
+        if (age >= 18) {
+            document.getElementById('dob_' + index).value = "";
+            alert("Вік пасажира вже 18 років");
+        }
+    }
+
+    function updateTicketsType() {
+        var passengersAgeData = "";
+
+        var passengerForms = document.querySelectorAll('.passenger-form');
+        passengerForms.forEach(function (form, index) {
+            var passengerAge = form.querySelector('input[name="passAge_' + index + '"]:checked').value;
+            if (index === passengerForms.length - 1) {
+                passengersAgeData += passengerAge;
+            } else {
+                passengersAgeData += passengerAge + ",";
+            }
+        });
+
+        document.getElementById('ticketsType').value = passengersAgeData;
+    }
+</script>
+<style>
+    .tckt{
+        color: white;
+        background-color: #1560BD;
+        border-top-left-radius: 15px;
+        border-top-right-radius: 15px;
+    }
+
+    .mfg {
+        width:30%;
+    }
+
+    .passenger-form{
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    }
+    .pform{
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    }
+    .submit-div input{
+        border-radius: 5px;
+    }
+</style>

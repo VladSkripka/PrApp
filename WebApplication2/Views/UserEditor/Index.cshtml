@@ -1,0 +1,210 @@
+﻿@model IEnumerable<Microsoft.AspNetCore.Identity.IdentityUser>
+
+@{
+    ViewData["Title"] = "Index";
+    var currentPage = 1;
+    int pageSize = 7;
+    int totalPages = Math.Max(1, (int)Math.Ceiling((double)Model.Count() / pageSize));
+
+    if (ViewContext.HttpContext.Request.Query.ContainsKey("page"))
+    {
+        currentPage = Convert.ToInt32(ViewContext.HttpContext.Request.Query["page"]);
+    }
+    currentPage = Math.Min(Math.Max(currentPage, 1), totalPages);
+}
+<h1>Користувачі</h1>
+<br>
+<div class="row">
+    <div class="col-md-3">
+        <ul class="nav nav-pills flex-column">
+            <li class="nav-item">
+                <a class="nav-link" asp-area="" asp-controller="UserEditor" asp-action="AdminDashboard">Головна</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" asp-area="" asp-controller="VacantDepartures" asp-action="">Рейси</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" asp-area="" asp-controller="Trains" asp-action="">Типи потягів</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" asp-area="" asp-controller="Ticket" asp-action="">Квитки</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" asp-area="" asp-controller="UserEditor" asp-action="">Користувачі</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" asp-area="" asp-controller="UserEditor" asp-action="Roles">Ролі</a>
+            </li>
+        </ul>
+    </div>
+    <div class="col-md-9">
+        <div class="con" style="display:flex; justify-content: space-around;">
+            <div class="chart-container" style="height:300px; width:300px">
+                <canvas id="pieChart" style="position:center"></canvas>
+            </div>
+            <div>
+                <p>
+                    <label>Авторизованих користувачів: @ViewBag.Authenticated</label> <br>
+                    <label>Неавторизованих користувачів: @ViewBag.Unauthenticated</label><br>
+                    <label>Всього: @ViewBag.TotalUsers</label><br>
+                </p>
+            </div>
+        </div>
+        <br>
+        <p>
+            <a asp-action="UserCreator">Сворити нового користувача у системі</a>
+        </p>
+        @if (Model.Any())
+        {
+
+            <table class="table">
+                <thead class="dark">
+                    <tr>
+                        <th>
+                            @Html.DisplayNameFor(model => model.Id)
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.UserName)
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.Email)
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.PhoneNumber)
+                        </th>
+                        <th>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Any())
+                    {
+                        var pagedData = Model.Skip((currentPage - 1) * pageSize).Take(pageSize);
+                        foreach (var user in pagedData)
+                        {
+                            <tr>
+                                <td>
+                                    @Html.DisplayFor(modelItem => user.Id)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => user.UserName)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => user.Email)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => user.PhoneNumber)
+                                </td>
+                                <td>
+                                    <a class="btn btn-outline-info" asp-action="UserDetails" asp-route-id="@user.Id">Details</a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>  
+        }
+        else
+        {
+            <p>No users found.</p>
+        }
+        <nav>
+            <ul class="pagination justify-content-center">
+                @if (currentPage > 1)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="?page=@(currentPage - 1)" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                }
+
+
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <li class="page-item @(currentPage == i ? "active" : "")">
+                        <a class="page-link" href="?page=@i">@i</a>
+                    </li>
+                }
+
+                @if (currentPage < totalPages)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="?page=@(currentPage + 1)" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    </div>
+</div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.min.js"></script>
+<script>
+    window.onload = function () {
+        pieChartForUsers();
+    };
+
+    function pieChartForUsers() {
+
+        var authenticated = @(ViewBag.Authenticated);
+        var unauthenticated = @(ViewBag.Unauthenticated);
+        var users = [authenticated, unauthenticated]
+
+        var data = {
+            labels: ["Авторизовані", "Неавторизовані"],
+            datasets: [
+                {
+                    label: '',
+                    data: users,
+                    backgroundColor: [
+                        'rgb(255, 99, 132)',
+                        'rgb(54, 162, 235)',
+                    ],
+
+                    hoverOffset: 4
+                }]
+        };
+
+        var pieCtx = document.getElementById('pieChart').getContext('2d');
+        var pieChart = new Chart(pieCtx, {
+            type: 'doughnut',
+            data: data, // Use the same data as the bar chart
+            options: {
+                plugins: {
+                    title: {
+                        display: true,
+                        text: "Розподіл користувачів ресурсу",
+                        padding: {
+                            top: 10,
+                            bottom: 10
+                        },
+                        font: {
+                            size: 22
+                        }
+                    }
+                }
+            }
+        });
+        pieChart.resize(60, 60);
+    }
+</script>
+
+<style>
+    .con {
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    }
+    .dark {
+        color: white;
+        background-color: black;
+        border-top-left-radius: 15px;
+        border-top-right-radius: 15px;
+    }
+    th,td{
+        vertical-align: middle;
+    }
+</style >

@@ -1,0 +1,103 @@
+﻿@model IEnumerable<WebApplication2.Models.VacantDeparture>
+
+
+@{
+    ViewData["Title"] = "Search";
+}
+
+<h1>Пошук</h1>
+@if(Model.Count() > 0)
+{
+    <table class="table">
+        <thead class="tckt">
+            <tr>
+                <th></th>
+                <th>
+                    <label>№</label>
+                </th>
+                <th>
+                    <label>Відправлення</label>
+                </th>
+                <th>
+                    <label>Місце відправлення</label>
+                </th>
+                <th>
+                    <label>Місце прибуття</label>
+                </th>
+                <th>
+                    <label>Дата відправлення</label>
+                </th>
+                <th>
+                    <label>Дата прибуття</label>
+                </th>
+                <th>
+                    <label>Ціна</label>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                bool isWithinTenMinutes = (item.departureD - DateTime.Now).TotalMinutes < 10;
+                string rowClass = isWithinTenMinutes ? "departure-soon" : "";
+                <tr>
+                    <td style="vertical-align: middle;">
+                        <button class="@rowClass" disabled @(isWithinTenMinutes ? "" : "hidden")>Скоро відправлення</button>
+                    </td>
+                    <td style="vertical-align: middle;">
+
+                        @Html.DisplayFor(modelItem => item.PID)
+                    </td>
+                    <td style="vertical-align: middle;">
+                        @Html.DisplayFor(modelItem => item.vacanDepartureName)
+                    </td>
+                    <td style="vertical-align: middle;">
+                        @Html.DisplayFor(modelItem => item.departureP)
+                    </td>
+                    <td style="vertical-align: middle;">
+                        @Html.DisplayFor(modelItem => item.arrivalP)
+                    </td>
+                    <td style="vertical-align: middle;">
+                        @Html.DisplayFor(modelItem => item.departureD)
+                    </td >
+                    <td style ="vertical-align: middle;">
+                        @Html.DisplayFor(modelItem => item.arrivalD)
+                    </td>
+                    <td>
+                        <form asp-action="Ordering">
+                            <input type="hidden" name="id" value="@item.vdID">
+                            <button type="submit" class="btn btn-outline-primary"> @(item.price) грн. </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div>
+        <p>
+            На цей тиждень не має рейсів за цим напрямком :(
+        </p>
+    </div>
+    <form asp-action="Search">
+        <input type="hidden" name="nearestModel" value="@(@Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.SearchModel))">
+        <button type="submit" class="btn-primary">Переглянути найближчі рейси →</button>
+    </form>
+}
+
+
+<style>
+    .departure-soon {
+        background-color: red; /* Change to any color you prefer */
+        color: white;
+    }
+
+    .tckt {
+        color: white;
+        background-color: #1560BD;
+        border-top-left-radius: 15px;
+        border-top-right-radius: 15px;
+    }
+</style>

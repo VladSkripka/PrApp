@@ -1,0 +1,106 @@
+﻿@model WebApplication2.Models.VacantDeparture
+
+@{
+    ViewData["Title"] = "Ordering";
+}
+
+
+<div class="con">
+    <h1><a class="back" onclick="history.back();">←</a> @Model.vacanDepartureName (№ @Model.PID)</h1>
+    <br />
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            <label class="control-label">Номер відправлення</label>
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.PID)
+        </dd>
+        <dt class = "col-sm-2">
+            <label class="control-label">Назва відправлення</label>
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.vacanDepartureName)
+        </dd>
+        <dt class = "col-sm-2">
+            <label class="control-label">Місце відправлення</label>
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.departureP)
+        </dd>
+        <dt class = "col-sm-2">
+            <label class="control-label">Координати місця відправлення</label>
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.departureCoord)
+        </dd>
+        <dt class = "col-sm-2">
+            <label class="control-label">Місце прибуття</label>
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.arrivalP)
+        </dd>
+        <dt class = "col-sm-2">
+            <label class="control-label">Дата відправлення</label>
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.departureD)
+        </dd>
+        <dt class = "col-sm-2">
+            <label class="control-label">Дата прибуття</label>
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.arrivalD)
+        </dd>
+        <dt class = "col-sm-2">
+            <label class="control-label">Ціна квитка</label>
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.price)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.seatsCount)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.seatsCount)
+        </dd>
+        <dt class="col-sm-2">
+            <label class="control-label">Кількість вагонів</label>
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.carriageCount)
+        </dd>
+        <dt class="col-sm-2">
+            <label class="control-label">ID перевізника із таблиці Users</label>
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.provider.Id)
+        </dd>
+        <dt class="col-sm-2">
+            <label class="control-label">Модель вагонів потягу</label>
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Train.typeName)
+        </dd>
+    </dl>
+
+    <div>
+        <a class="btn btn-warning" asp-action="Edit" asp-route-id="@Model?.vdID">Змінити</a>
+        <a class="btn btn-danger" asp-action="Delete" asp-route-id="@Model?.vdID">Видалити</a>
+    </div>
+</div>
+
+<style>
+    .con {
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .back {
+        font: 14pt;
+        color: red;
+        cursor: pointer;
+        text-decoration: none;
+    }
+</style >

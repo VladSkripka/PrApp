@@ -1,0 +1,82 @@
+﻿@model Microsoft.AspNetCore.Identity.IdentityUser
+@{
+    ViewData["Title"] = "UserCreator";
+}
+
+<div class="con">
+    <h1><a class="back" onclick="history.back();">←</a> Ручне створення нового користувача</h1>
+    <br />
+    <hr />
+    @using (Html.BeginForm("UserCreator", "UserEditor", FormMethod.Post, new { onsubmit = "return validatePassword();" }))
+    {
+        <div class="form-group">
+            <label asp-for="UserName">Username</label>
+            <input asp-for="UserName" class="form-control" />
+            <span asp-validation-for="UserName" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Email">Email</label>
+            <input asp-for="Email" class="form-control" />
+            <span asp-validation-for="Email" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="PhoneNumber">Phone</label>
+            <input asp-for="PhoneNumber" class="form-control" />
+            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" class="form-control" id="password" name="password" />
+        </div>
+        <div class="form-group">
+            <label>Confirm password</label>
+            <input type="password" class="form-control" id="confirmPassword" name="confirm-password" />
+            <span id="confirmPasswordError" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label for="roleId">Role</label>
+            <select id="roleId" name="roleId" asp-items="@ViewBag.Roles" class="form-control">
+                <option value="">Select Role</option>
+            </select>
+        </div>
+        <br />
+        <button type="submit" class="btn btn-primary">Створити</button>
+    }
+</div>
+
+
+<script>
+    function validatePassword() {
+        var password = document.getElementById("password").value;
+        var confirmPassword = document.getElementById("confirmPassword").value;
+        var confirmPasswordError = document.getElementById("confirmPasswordError");
+
+        if (password !== confirmPassword) {
+            confirmPasswordError.textContent = "Паролі не співпадають"
+            return false;
+        }
+        confirmPasswordError.textContent = "";
+        return true;
+        
+    }
+</script>
+
+
+<style>
+    .con {
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    }
+    .con input,select,option{
+        width:40%;
+    }
+
+    .back {
+        font: 14pt;
+        color: red;
+        cursor: pointer;
+        text-decoration: none;
+    }
+</style>

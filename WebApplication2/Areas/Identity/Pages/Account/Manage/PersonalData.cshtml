@@ -1,0 +1,31 @@
+﻿@page
+@model PersonalDataModel
+@{
+    ViewData["Title"] = "Personal Data";
+    ViewData["ActivePage"] = ManageNavPages.PersonalData;
+}
+
+<h3>Персональні дані</h3>
+
+<div class="row">
+    <div class="col-md-6">
+        <p>Ваш обліковий містить дані, які ви надали нам при реєстрації. Перед видаленням ви можете їх завантажити на даній сторінці</p>
+        
+        <form id="download-data" asp-page="DownloadPersonalData" method="post">
+            <button class="btn btn-primary" type="submit">Завантажити</button>
+        </form>
+        <br />
+        <hr />
+        <p>
+            <strong>Видалення облікового запису назавжди видалить даний аккаунт і ваші персональні дані із нашої системи. Дана дія є невиправною</strong>
+        </p>
+        
+        <p>
+            <a id="delete" asp-page="DeletePersonalData" class="btn btn-danger">Видалити</a>
+        </p>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

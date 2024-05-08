@@ -1,0 +1,244 @@
+﻿
+@{
+    ViewData["Title"] = "AdminDashboard";
+}
+
+<h1>Головна</h1>
+<br>
+<div class="row">
+
+
+    <div class="col-md-3">
+        <ul class="nav nav-pills flex-column">
+            <li class="nav-item">
+                <a class="nav-link active" asp-area="" asp-controller="UserEditor" asp-action="AdminDashboard">Головна</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" asp-area="" asp-controller="VacantDepartures" asp-action="">Рейси</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" asp-area="" asp-controller="Trains" asp-action="">Типи потягів</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" asp-area="" asp-controller="Ticket" asp-action="">Квитки</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" asp-area="" asp-controller="UserEditor" asp-action="">Користувачі</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" asp-area="" asp-controller="UserEditor" asp-action="Roles">Ролі</a>
+            </li>
+        </ul>
+    </div>
+    <div class="col-md-9">
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="soldAndCancelled" data-bs-toggle="tab" type="button" role="tab" aria-selected="true" onclick="soldAndCancelledTicketsBar();">Кількість проданих та скасованих квитків</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="profile-tab" data-bs-toggle="tab" type="button" role="tab" aria-selected="false" onclick="ticketsPerMonth();">Статистика за 2024 рік</button>
+          </li>
+        </ul>
+        <div>
+            <canvas id="ticketChart" height="130"></canvas>
+        </div>
+
+        <br>
+        <hr>
+        <div style="display:flex;">
+            <div class="chart-container" style="height:400px; width:400px">
+                <canvas id="pieChart" style="position:center"></canvas>
+            </div>
+            <div>
+                <label>Всього продано квитків: @ViewBag.soldTickets</label>
+                <br>
+                <label>Всього скасовано квитків: @ViewBag.cancelledTickets</label>
+                <br>
+                <label>Прибуток: (додам потім)</label>
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.min.js"></script>
+<script>
+    var myChart;
+    window.onload = function () {
+        soldAndCancelledTicketsBar();
+        pieChartForTickets();
+
+    };
+    var date = new Date();
+
+
+
+    function soldAndCancelledTicketsBar() {
+        if (myChart) {
+            myChart.destroy(); // Destroy the existing chart if it exists
+        }
+
+        var soldticketCounts = @(ViewBag.soldTickets);
+        var cancelledticketCounts = @(ViewBag.cancelledTickets);
+
+        var data = {
+            labels: ["Продані", "Скасовані"],
+            datasets: [{
+                label: 'Продані',
+                data: [soldticketCounts, 0],
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1
+            }, {
+                label: 'Скасовані',
+                data: [0,cancelledticketCounts],
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        };
+
+        var ctx = document.getElementById('ticketChart').getContext('2d');
+
+        myChart = new Chart(ctx, {
+            type: 'bar',
+            data: data,
+            options: {
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        stacked: true,
+                        barPercentage: 0.5, // Adjust the width of the bars
+                        categoryPercentage: 0.5 // Adjust the spacing between the bars
+                    },
+                    y: {
+                        beginAtZero: true,
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: "Статистика скасованих та проданих квитків",
+                        padding: {
+                            top: 10,
+                            bottom: 10
+                        },
+                        font: {
+                            size: 22
+                        }
+                    }
+                }
+            }
+        });
+    }
+    function pieChartForTickets(){
+
+        var soldticketCounts = @(ViewBag.soldTickets);
+        var cancelledticketCounts = @(ViewBag.cancelledTickets);
+        var tickets = [soldticketCounts, cancelledticketCounts]
+
+        var data = {
+        labels: ["Продані", "Скасовані"],
+        datasets: [
+            {
+                label: '',
+                data: tickets,
+                backgroundColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(54, 162, 235)',
+                ],
+
+                hoverOffset: 4
+            }]
+        };
+
+        var pieCtx = document.getElementById('pieChart').getContext('2d');
+        var pieChart = new Chart(pieCtx, {
+            type: 'doughnut',
+            data: data, // Use the same data as the bar chart
+            options: {
+                plugins: {
+                    title: {
+                        display: true,
+                        text: "Розподіл квитків",
+                        padding: {
+                            top: 10,
+                            bottom: 10
+                        },
+                        font: {
+                            size: 22
+                        }
+                    }
+                }
+            }
+        });
+        pieChart.resize(60, 60);
+    }
+    function ticketsPerMonth(){
+         if (myChart) {
+            myChart.destroy(); // Destroy the existing chart if it exists
+        }
+    
+        var soldTicketCounts = @Html.Raw(Json.Serialize(ViewBag.soldTicketPerMonth));
+        var cancelledTicketPerMonth = @Html.Raw(Json.Serialize(ViewBag.cancelledTicketPerMonth));
+
+        var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        var ctx = document.getElementById('ticketChart').getContext('2d');
+
+        var labels = [];
+        for (var i = 0; i < soldTicketCounts.length; i++) {
+            labels.push(months[i % months.length]); // Loop over months array
+        }
+
+
+        myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Sold Tickets',
+                    data: soldTicketCounts,
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }, {
+                    label: 'Cancelled Tickets',
+                    data: cancelledTicketPerMonth,
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: "Статистика за  " + date.getFullYear() + " рік",
+                        padding: {
+                            top: 10,
+                            bottom: 10
+                        },
+                        font: {
+                            size: 22
+                        }
+                    }
+                }
+            }
+        });
+    }
+</script>
+<style>
+    .con {
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    }
+</style>

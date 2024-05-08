@@ -1,0 +1,88 @@
+﻿@model IEnumerable<Microsoft.AspNetCore.Identity.IdentityRole>
+@{
+    ViewData["Title"] = "Roles";
+}
+
+<h1>Ролі</h1>
+<br>
+<div class="row">
+    <div class="col-md-3">
+        <ul class="nav nav-pills flex-column">
+            <li class="nav-item">
+                <a class="nav-link" asp-area="" asp-controller="UserEditor" asp-action="AdminDashboard">Головна</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" asp-area="" asp-controller="VacantDepartures" asp-action="">Рейси</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" asp-area="" asp-controller="Trains" asp-action="">Типи потягів</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" asp-area="" asp-controller="Ticket" asp-action="">Квитки</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" asp-area="" asp-controller="UserEditor" asp-action="">Користувачі</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" asp-area="" asp-controller="UserEditor" asp-action="Roles">Ролі</a>
+            </li>
+        </ul>
+    </div>
+    <div class="col-md-9">
+        @if (Model.Any())
+        {
+            <table class="table">
+                <thead class="dark">
+                    <tr>
+                        <th>
+                            @Html.DisplayNameFor(model => model.Id)
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.Name)
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.NormalizedName)
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.ConcurrencyStamp)
+                        </th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var role in Model)
+                    {
+                        <tr>
+                            <td>
+                                @Html.DisplayFor(modelItem => role.Id)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => role.Name)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => role.NormalizedName)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => role.ConcurrencyStamp)
+                            </td>
+                            <td>
+                                <a class="btn btn-outline-info" asp-action="UsersInRole" asp-route-id="@role.Id">Користувачі з роллю</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+<style>
+    .dark {
+        color: white;
+        background-color: black;
+        border-top-left-radius: 15px;
+        border-top-right-radius: 15px;
+    }
+    th,td{
+        vertical-align: middle;
+    }
+</style >

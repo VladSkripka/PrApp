@@ -1,0 +1,62 @@
+﻿@model WebApplication2.Models.Train
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+
+
+<div class="con">
+    <h1><a class="back" onclick="history.back();">←</a> Деталі</h1>
+    <br />
+    <h4>Вагон</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            <label>Назва моделі</label>
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.typeName)
+        </dd>
+        <dt class = "col-sm-2">
+            <label>Кількість місць</label>
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.trainSeats)
+        </dd>
+        <dt class="col-sm-2">
+            <label>Кількість рядів</label>
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.trainRows)
+        </dd>
+        <dt class="col-sm-2">
+            <label>Шлях до схеми</label>
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.schemaPath)
+        </dd>
+        <dd class="col-sm-10">
+            <img src="@Model.schemaPath" alt="@Model.typeName">
+        </dd>
+    </dl>
+    <div>
+        <a class="btn btn-warning" asp-action="Edit" asp-route-id="@Model.trainTypeID">Змінити</a>
+        <a class="btn btn-danger" asp-action="Delete" asp-route-id="@Model.trainTypeID">Видалити</a>
+    </div>
+</div>
+
+<style>
+    .con {
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .back {
+        font: 14pt;
+        color: red;
+        cursor: pointer;
+        text-decoration: none;
+    }
+</style>

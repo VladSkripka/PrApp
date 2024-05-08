@@ -1,0 +1,124 @@
+﻿@model WebApplication2.Models.TicketModel
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<div class="con">
+    <h1><a onclick="history.back();" class="back">←</a> Квиток № @Model.ticketPID 
+        <span class=@(Model.status == "sold" ? "s" : "c")>
+            @Html.DisplayFor(model => model.status)
+        </span>
+    </h1>
+    <br />
+    <h4>Деталі</h4>
+    <hr />
+    <dl class="row">
+
+        <dt class = "col-sm-2">
+            <label>Місце відправлення</label>
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.departureP)
+        </dd>
+        <dt class = "col-sm-2">
+            <label>Місце прибуття</label>
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.arrivalP)
+        </dd>
+        <dt class = "col-sm-2">
+             <label>Дата відправлення</label>
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.departureD)
+        </dd>
+        <dt class = "col-sm-2">
+            <label>Дата прибуття</label>
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.arrivalD)
+        </dd>
+        <dt class = "col-sm-2">
+             <label>Прізвище та Ім'я пасажира</label>
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.passengerFullName)
+        </dd>
+        <dt class = "col-sm-2">
+            <label>Номер вагону</label>
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.carriageNumber)
+        </dd>
+        <dt class = "col-sm-2">
+            <label>Номер місця</label>
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.seat)
+        </dd>
+        <dt class="col-sm-2">
+            <label>Дата бронювання</label>
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.PurchaseDate)
+        </dd>
+        <dt class="col-sm-2">
+            <label>Тип квитка</label>
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.ticketAgeType)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.addtionalOptions)
+        </dt>
+        <dd class="col-sm-10">
+             <label>Додаткові послуги</label>
+        </dd>
+        <dt class="col-sm-2" @(User.IsInRole("Admin") ? "":"hidden")>
+             <label>Номер рейсу у таблиці VacantDepartures</label>
+        </dt>
+        <dd class="col-sm-10" @(User.IsInRole("Admin") ? "":"hidden")>
+            @Html.DisplayFor(model => model.vacantDepatureID)
+        </dd>
+    </dl>
+
+    <div>
+        @if (User.IsInRole("Admin"))
+        {
+            <a class="btn btn-warning" asp-action="Edit" asp-route-id="@Model?.ticketID">Змінити</a>
+            <a class="btn btn-danger" asp-action="Delete" asp-route-id="@Model?.ticketID">Видалити</a>
+        }
+        @if(Model.status != "cancelled")
+        {
+            <a class="btn btn-outline-danger" asp-action="Cancel" asp-route-id="@Model?.ticketID">Скасувати</a>
+        }
+    </div>
+</div>
+
+<style>
+    .con {
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    }
+    .c {
+        background-color:red;
+        color:white;
+        border-radius:5px;
+        padding:5px;
+    }
+    .s{
+        background-color: green;
+        color: white;
+        border-radius: 5px;
+        padding: 5px;
+    }
+
+    .back {
+        font: 14pt;
+        color: red;
+        cursor: pointer;
+        text-decoration: none;
+    }
+</style>

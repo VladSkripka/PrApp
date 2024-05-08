@@ -1,0 +1,91 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - WebApplication2</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/WebApplication2.styles.css" asp-append-version="true" />
+    @using Microsoft.AspNetCore.Identity
+    @inject SignInManager<IdentityUser> SignInManager
+    @inject UserManager<IdentityUser> UserManager
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <div class="container-fluid">
+                <a class="navbar-brand" @(User.IsInRole("Admin") || User.IsInRole("Provider") ? "hidden": "")>
+                    <img src="~/images/train-logo.png" alt="logo.svg" width="auto" height="24">
+                </a>
+                <a class="navbar-brand" @(User.IsInRole("Admin") ? "": "hidden")>
+                    <img src="~/images/train-adashboard-logo.png" alt="logo.svg" width="auto" height="24">
+                </a>
+                <a class="navbar-brand" @(User.IsInRole("Provider") ? "": "hidden")>
+                    <img src="~/images/train-dashboard-logo.png"  alt="logo.svg" width="auto" height="24">
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item" @(User.IsInRole("Admin")? "hidden": "")>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Search" asp-action="Index">
+                                Головна
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">
+                                Про нас
+                            </a>
+                        </li>
+                        <li class="nav-item" @(User.Identity.IsAuthenticated && !User.IsInRole("Admin") && !User.IsInRole("Provider") ? "": "hidden")>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Ticket" asp-action="">Квитки</a>
+                        </li>
+                        @{
+                            var controller = ViewContext?.RouteData?.Values?["Controller"]?.ToString();
+                            var action = ViewContext?.RouteData?.Values?["Action"]?.ToString();
+                        }
+                        <li class="nav-item" @(User.IsInRole("Admin") ? "" : "hidden")>
+                            <a class="nav-link text-dark" 
+                                asp-area="" 
+                                asp-controller="@(controller != "UserEditor" && action != "AdminDashboard" ? "UserEditor" : "Search")" 
+                                asp-action="@(controller != "UserEditor" && action != "AdminDashboard" ? "AdminDashboard" : "Index")"
+                            >
+                                До @(controller == "UserEditor" && action == "AdminDashboard" ? "сайту" : "адміністративної панелі")
+                            </a>
+                        </li>
+                        <li class="nav-item" @(User.IsInRole("Provider") ? "" : "hidden")>
+                            <a class="nav-link text-dark" 
+                                asp-area="" 
+                                asp-controller="@(controller != "UserEditor" && action != "Dashboard" ? "UserEditor" : "Search")" 
+                                asp-action="@(controller != "UserEditor" && action != "Dashboard" ? "Dashboard" : "Index")"
+                            >
+                                До @(controller == "UserEditor" && action == "Dashboard" ? "сайту" : "панелі")
+                            </a>
+                        </li>
+
+                    </ul>
+                    <partial name="_LoginPartial" />
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            &copy; 2024 - TicketPoint - <a asp-area="" asp-controller="Home" asp-action="Privacy">Про нас</a>
+        </div>
+    </footer>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

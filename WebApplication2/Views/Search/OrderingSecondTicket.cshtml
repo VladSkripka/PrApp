@@ -1,0 +1,261 @@
+﻿@model WebApplication2.Models.VacantDeparture
+
+@{
+    ViewData["Title"] = "OrderingSecondTicket";
+}
+
+<div class="con">
+    <h1><a onclick="back();" class="back">←</a> Рейс @Model.vacanDepartureName (№ @Model.PID)</h1>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            <label>Місце відправлення</label>
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.departureP)
+        </dd>
+        <dt class="col-sm-2">
+            <label>Місце прибуття</label>
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.arrivalP)
+        </dd>
+        <dt class="col-sm-2">
+            <label>Час відправлення</label>
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.departureD)
+        </dd>
+        <dt class="col-sm-2">
+            <label>Час прибуття</label>
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.arrivalD)
+        </dd>
+        <dt class="col-sm-2">
+            <label>Ціна (грн.)</label>
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.price)
+        </dd>
+    </dl>
+    
+@if (ViewBag.CarriageCount > 1)
+{
+    @for (int i = 1; i <= ViewBag.CarriageCount; i++)
+    {
+        
+        <div id="carriage@(i)" class="carriage-info" style="@(i == 1 ? "" : "display: none;")">
+            <h1 style="text-align:center;">Вагон №@i</h1>
+             <div class="button-container">
+                 @if (ViewBag.Rows == 1)
+                {
+                    @for (int j = 1; j <= ViewBag.SeatsCount; j++)
+                    {
+                        <button class="seat single" id="seat@(i)_@(j)" onclick="selectSeat(@i, @j);" @(ViewBag.Seats[i-1].Contains(j) ? "disabled" : "")>@j</button>
+                    }
+                }
+                else
+                {
+                    @for (int j = 0; j < ViewBag.SeatsCount / ViewBag.Rows; j++)
+                    {
+                        var seatNumberEven = j * ViewBag.Rows + 2;
+
+                        <button class="seat ev" id="seat@(i)_@(seatNumberEven)" onclick="selectSeat(@i, @seatNumberEven);" @(ViewBag.Seats[i-1].Contains(seatNumberEven) ? "disabled" : "")>@seatNumberEven</button>
+                    }
+                
+                    <br />
+                    @for (int j = 0; j < ViewBag.SeatsCount / ViewBag.Rows; j++)
+                    {
+                        var seatNumberOdd = j * ViewBag.Rows + 1;
+
+                        <button class="seat mlt-odd" id="seat@(i)_@(seatNumberOdd)" onclick="selectSeat(@i, @seatNumberOdd);" @(ViewBag.Seats[i-1].Contains(seatNumberOdd) ? "disabled" : "")>@seatNumberOdd</button> 
+                    }
+                }
+             </div> 
+        </div>
+    }
+    <div class="photo">
+        <img src="@Model.Train.schemaPath" alt="@Model.vacanDepartureName">
+    </div>
+    
+    <div class="pag-btn" @(ViewBag.CarriageCount > 1 ? "" : "hidden") >
+        <button class="btn btn-outline-primary" onclick="showPrevious()">←</button>
+        <button class="btn btn-outline-primary" onclick="showNext()">→</button>
+        
+    </div>
+}
+else
+{
+    <p>No seats available in this train type.</p>
+}
+
+    <form asp-action="SummingUp">
+        <input type="hidden" name="id" value="@Model.vdID">
+        <input type="hidden" id="SelectedCarriage" name="SelectedCarriage" value="">
+        <input type="hidden" id="SelectedSeat" name="SelectedSeat" value="">
+        <input type="hidden" name="mainVacDepId" value="@ViewBag.mainVacDepId">
+        <input type="hidden" name="mainChosenSeats" value="@ViewBag.mainChosenSeats">
+        <input type="hidden" name="mainChosenCars" value="@ViewBag.mainChosenCars">
+
+        <div class="submit-div">
+            <input class="btn-success" id="submitbot" type="submit" value="Оформити квитки">
+        </div>
+    </form>
+</div>
+
+<script>
+    let currentCarriage = 1;
+    const totalCarriages = @(ViewBag.CarriageCount); 
+
+    function showPrevious() {
+        if (currentCarriage > 1) {
+            hideCarriage(currentCarriage);
+            currentCarriage--;
+            showCarriage(currentCarriage);
+        }
+    }
+
+    function showNext() {
+        if (currentCarriage < totalCarriages) {
+            hideCarriage(currentCarriage);
+            currentCarriage++;
+            showCarriage(currentCarriage);
+        }
+    }
+
+    function hideCarriage(carriageNumber) {
+        document.getElementById('carriage' + carriageNumber).style.display = 'none';
+    }
+
+    function showCarriage(carriageNumber) {
+        document.getElementById('carriage' + carriageNumber).style.display = 'block';
+    }
+    function selectSeat(carriageNumber, seatNumber) {
+
+        let selectedCarriages = document.getElementById('SelectedCarriage').value.trim();
+        let selectedSeats = document.getElementById('SelectedSeat').value.trim();
+
+        // Split the values only if they are not empty
+        selectedCarriages = selectedCarriages ? selectedCarriages.split(',') : [];
+        selectedSeats = selectedSeats ? selectedSeats.split(',') : [];
+
+        // Check if the current selection already exists
+        const index = selectedCarriages.indexOf(carriageNumber.toString() + '_' + seatNumber.toString());
+        if (index === -1) {
+            // Add the current selection to the arrays
+            selectedCarriages.push(carriageNumber);
+            selectedSeats.push(seatNumber);
+        } else {
+            // Remove the selection if it already exists
+            selectedCarriages.splice(index, 1);
+            selectedSeats.splice(index, 1);
+        }
+        console.log(selectedCarriages + " " + selectedSeats)
+        // Update hidden input fields with the new selections
+
+        document.getElementById('SelectedCarriage').value = selectedCarriages.join(',');
+
+        document.getElementById('SelectedSeat').value = selectedSeats.join(',');
+
+        // Toggle button color
+        const button = document.getElementById('seat' + carriageNumber + '_' + seatNumber);
+        button.style.backgroundColor = (index === -1) ? 'green' : '';
+        button.style.color = (index === -1) ? 'white' : '';// Set color to red if selected, else reset color
+        button.style.borderColor = (index === -1) ? 'green' : '';
+    }
+
+    function back(){
+        history.back();
+    }
+</script>
+<style>
+    .button-container {
+        position: relative;
+    }
+
+    .button-container {
+        font-size: 0;
+    }
+
+    .seat {
+        padding: 0;
+        width: 20px; /* Adjust the width as needed */
+        height: 20px; /* Adjust the height as needed */ /* Adjust the margin as needed */
+        font-size: 14px;
+        text-align: center;
+        padding-bottom: 4px;
+        margin-bottom: 6px;
+        border-color: #1560BD;
+        color: #1560BD;
+        background-color: white;
+        border-radius: 3px;
+    }
+    
+        .seat:disabled {
+            border-color: #1560BD;
+            color: white;
+            background-color: #1560BD;
+        }
+
+        .seat button {
+            display: inline-block;
+            margin: 0;
+            padding: 0;
+        }
+
+
+    .photo {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+
+        .photo img {
+            width: 60vw;
+            height: 34%;
+        }
+
+    .ev:nth-child(2n-3) {
+        margin-right: 1.64vw;
+    }
+
+    .mlt-odd:nth-child(2n) {
+        margin-right: 1.64vw;
+    }
+
+    .single:nth-child(odd) {
+        margin-right: 1.64vw;
+    }
+
+    .button-container {
+        width: 60vw;
+        padding-top: 2.5%;
+        position: absolute;
+        z-index: 1;
+        left: 35.25vw;
+    }
+
+    .pag-btn {
+        display: flex;
+        justify-content: center;
+        font: 14pt;
+    }
+
+    .con {
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .submit-div input {
+        border-radius: 5px;
+    }
+
+    .back {
+        font: 14pt;
+        color: red;
+        cursor: pointer;
+        text-decoration: none;
+    }
+</style>

@@ -1,0 +1,72 @@
+﻿@model WebApplication2.Models.Train
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+
+<div class="row con">
+    <h1><a onclick="history.back();" class="back">←</a> Створення нововї моделі</h1>
+
+    <h4>Вагон</h4>
+    <br />
+    <hr />
+    <div class="col-md-4">
+        <form asp-action="Create" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label class="control-label">Назва моделі</label>
+                <input asp-for="typeName" class="form-control" />
+                <span asp-validation-for="typeName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Кількість місць</label>
+                <input asp-for="trainSeats" class="form-control" />
+                <span asp-validation-for="trainSeats" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Кількість рядів</label>
+                <input asp-for="trainRows" class="form-control" />
+                <span asp-validation-for="trainRows" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Схема вагона</label>
+                <input id="schemaFile" name="schema" type="file" class="form-control" onchange="updateHiddenInput(this)" />
+                <input id="schemaFileHidden" type="hidden" asp-for="schemaPath">
+            </div>
+            <br />
+            <div class="form-group">
+                <input type="submit" value="Створити" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+<script>
+    function updateHiddenInput(input) {
+        var file = input.files[0];
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('schemaFileHidden').value = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+</script>
+<style>
+    .con {
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .back {
+        font: 14pt;
+        color: red;
+        cursor: pointer;
+        text-decoration: none;
+    }
+</style>

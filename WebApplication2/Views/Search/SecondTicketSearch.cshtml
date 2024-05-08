@@ -1,0 +1,76 @@
+﻿@model IEnumerable<WebApplication2.Models.VacantDeparture>
+
+@{
+    ViewData["Title"] = "SecondTicketSearch";
+}
+
+<h1>Пошук</h1>
+
+<table class="table">
+    <thead class="tckt">
+            <tr>
+                <th>
+                    <label>№</label>
+                </th>
+                <th>
+                    <label>Відправлення</label>
+                </th>
+                <th>
+                    <label>Місце відправлення</label>
+                </th>
+                <th>
+                    <label>Місце прибуття</label>
+                </th>
+                <th>
+                    <label>Дата відправлення</label>
+                </th>
+                <th>
+                    <label>Дата прибуття</label>
+                </th>
+                <th>
+                    <label>Ціна</label>
+                </th>
+            </tr>
+        </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td style ="vertical-align: middle;">
+                @Html.DisplayFor(modelItem => item.PID)
+            </td>
+            <td style ="vertical-align: middle;">
+                @Html.DisplayFor(modelItem => item.vacanDepartureName)
+            </td>
+            <td style ="vertical-align: middle;">
+                @Html.DisplayFor(modelItem => item.departureP)
+            </td>
+            <td style ="vertical-align: middle;">
+                @Html.DisplayFor(modelItem => item.arrivalP)
+            </td>
+            <td style ="vertical-align: middle;">
+                @Html.DisplayFor(modelItem => item.departureD)
+            </td>
+            <td style ="vertical-align: middle;">
+                @Html.DisplayFor(modelItem => item.arrivalD)
+            </td>
+            <td>
+                <form asp-action="OrderingSecondTicket">
+                    <input type="hidden" name="returnId" value="@item.vdID">
+                    <input type="hidden" name="mainVacDepId" value="@ViewBag.MainVacDep">
+                    <input type="hidden" name="mainChosenSeats" value="@ViewBag.MainChosenSeats">
+                    <input type="hidden" name="mainChosenCars" value="@ViewBag.MainChosenCars">
+                    <button type="submit" class="btn btn-outline-primary"> @(item.price) грн. </button>
+                </form>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
+<style>
+    .tckt {
+        color: white;
+        background-color: #1560BD;
+        border-top-left-radius: 15px;
+        border-top-right-radius: 15px;
+    }
+</style>

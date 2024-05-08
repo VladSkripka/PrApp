@@ -1,0 +1,106 @@
+﻿@model WebApplication2.Models.VacantDeparture
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+
+<div class="row con">
+    <h1><a class="back" onclick="history.back();">←</a> Створення нового рейсу</h1>
+    <br />
+    <hr />
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label class="control-label">Номер відправлення</label>
+                <input asp-for="PID" class="form-control" />
+                <span asp-validation-for="PID" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Назва відправлення</label>
+                <input asp-for="vacanDepartureName" class="form-control" />
+                <span asp-validation-for="vacanDepartureName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Місце відправлення</label>
+                <input asp-for="departureP" class="form-control" />
+                <span asp-validation-for="departureP" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Координати місця відправлення</label>
+                <input asp-for="departureCoord" class="form-control" />
+                <span asp-validation-for="departureCoord" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Адреса відправлення</label>
+                <input asp-for="departureAdress" class="form-control" />
+                <span asp-validation-for="departureAdress" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Місце прибуття</label>
+                <input asp-for="arrivalP" class="form-control" />
+                <span asp-validation-for="arrivalP" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Дата відправлення</label>
+                <input asp-for="departureD" class="form-control" />
+                <span asp-validation-for="departureD" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Дата прибуття</label>
+                <input asp-for="arrivalD" class="form-control" />
+                <span asp-validation-for="arrivalD" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Ціна квитка</label>
+                <input asp-for="price" class="form-control" />
+                <span asp-validation-for="price" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Модель вагона</label>
+                <select asp-for="Train.trainTypeID" asp-items="@(ViewBag.TrainTypes)" class="form-control"></select>
+                <span asp-validation-for="Train.trainTypeID" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Кількість вагонів</label>
+                <input asp-for="carriageCount" class="form-control" />
+                <span asp-validation-for="carriageCount" class="text-danger"></span>
+            </div>
+            <br />
+            <div class="form-group">
+                <input type="submit" value="Створити" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+    @Html.HiddenFor(model => model.PID)
+    @Html.HiddenFor(model => model.vacanDepartureName)
+    @Html.HiddenFor(model => model.departureP)
+    @Html.HiddenFor(model => model.departureCoord)
+    @Html.HiddenFor(model => model.arrivalP)
+    @Html.HiddenFor(model => model.departureD)
+    @Html.HiddenFor(model => model.arrivalD)
+    @Html.HiddenFor(model => model.price)
+    @Html.HiddenFor(model => model.Train.trainTypeID)
+    @Html.HiddenFor(model => model.carriageCount)
+</div>
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+<style>
+    .con {
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    }
+            
+    .back {
+        font: 14pt;
+        color: red;
+        cursor: pointer;
+        text-decoration: none;
+    }
+            
+</style>

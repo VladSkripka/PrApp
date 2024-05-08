@@ -1,0 +1,87 @@
+﻿@model IEnumerable<WebApplication2.Models.Train>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Список моделей вагонів</h1>
+<br>
+<div class="row">
+    <div class="col-md-3">
+        <ul class="nav nav-pills flex-column">
+            <li class="nav-item">
+                <a class="nav-link" asp-area="" asp-controller="UserEditor" asp-action="AdminDashboard">Головна</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" asp-area="" asp-controller="VacantDepartures" asp-action="">Рейси</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" asp-area="" asp-controller="Trains" asp-action="">Типи потягів</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" asp-area="" asp-controller="Ticket" asp-action="">Квитки</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" asp-area="" asp-controller="UserEditor" asp-action="">Користувачі</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" asp-area="" asp-controller="UserEditor" asp-action="Roles">Ролі</a>
+            </li>
+        </ul>
+    </div>
+    <div class="col-md-9">
+        <p>
+            <a asp-action="Create">Створити новий</a>
+        </p>
+        <table class="table">
+            <thead class="dark">
+                <tr>
+                    <th>
+                        <label>Назва моделі</label>
+                    </th>
+                    <th>
+                        <label>Кліьксть місць</label>
+                    </th>
+                    <th>
+                        <label>Кліьксть рядів</label>
+                    </th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model) {
+                    <tr>
+                        <td >
+                            @Html.DisplayFor(modelItem => item.typeName)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.trainSeats)
+                        </td>
+                        <th>
+                            @Html.DisplayFor(modelitem => item.trainRows)
+                        </th>
+                        <td>
+                            <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.trainTypeID">Details</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+    </div>
+</div>
+<style>
+    .dark {
+        color: white;
+        background-color: black;
+        border-top-left-radius: 15px;
+        border-top-right-radius: 15px;
+    }
+    td{
+        vertical-align: middle;
+    }
+</style>
+
+
+
+

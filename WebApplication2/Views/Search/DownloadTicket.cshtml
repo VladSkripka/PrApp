@@ -1,0 +1,15 @@
+﻿@model List<WebApplication2.Models.TicketModel>
+@{
+    ViewData["Title"] = "DownloadTicket";
+}
+
+<h1>Дякуємо за бронуювання!</h1>
+
+
+
+<a class="btn btn-primary index" asp-controller="Search" asp-action="Index">Повернутись на головну</a>
+<br />
+<form asp-controller="Search" asp-action="Download">
+    <input type="hidden" name="tickets" value="@(Newtonsoft.Json.JsonConvert.SerializeObject(Model))">
+    <button type="submit" class="btn btn-primary index">Скачати білет</button>
+</form>

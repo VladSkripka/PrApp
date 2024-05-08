@@ -1,0 +1,225 @@
+﻿@model IEnumerable<WebApplication2.Models.VacantDeparture>
+
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<h1>
+    З поверненням, @User.Identity?.Name!
+</h1>
+<br>
+<div class="row">
+    <div class="col-md-3" @(User.IsInRole("Admin") ? "hidden" : "")>
+        <ul class="nav nav-pills flex-column">
+            <li class="nav-item">
+                <a class="nav-link active" asp-area="" asp-controller="UserEditor" asp-action="Dashboard">Статистика</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" asp-area="" asp-controller="VacantDepartures" asp-action="">Віші Рейси</a>
+            </li>
+            <li class="nav-item">
+                <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                    <button type="submit" class="nav-link btn btn-link">Вийти</button>
+                </form>
+            </li>
+        </ul>  
+    </div>
+    <div class="col-md-9">
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="sold" data-bs-toggle="tab" type="button" role="tab" aria-selected="true" onclick="SoldTickets();">Продано квитків на кожен рейс</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="cancelled" data-bs-toggle="tab" type="button" role="tab" aria-selected="false" onclick="CancelledTickets();">Скасовано квитків на кожен рейс</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="perMonth" data-bs-toggle="tab" type="button" role="tab" aria-selected="false" onclick="getTicketsPerMonth();">Статистика за 2024 рік</button>
+            </li>
+        </ul>
+        <div>
+            <canvas id="ticketChart" height="130"></canvas>
+        </div>
+    </div>
+</div>
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.min.js"></script>
+<script>
+    var myChart;
+    window.onload = SoldTickets;
+    var date = new Date();
+
+    function SoldTickets(){
+        
+        if (myChart) {
+            
+            myChart.destroy(); // Destroy the existing chart if it exists
+        }
+
+
+        var ticketCounts = @Html.Raw(Json.Serialize(ViewBag.TicketCount));
+        var providerDepartures = @Html.Raw(Json.Serialize(Model));
+        // Get the canvas element
+        var ctx = document.getElementById('ticketChart').getContext('2d');
+
+        // Create the chart
+        myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ticketCounts.map((_, index) => providerDepartures[index].vacanDepartureName + " (" + providerDepartures[index].pid+")"),
+                datasets: [{
+                    label: 'Sold Ticket Counts',
+                    data: ticketCounts,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        // Add more colors if needed
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        // Add more colors if needed
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: "Скасовані квитки за кожен рейс",
+                        padding: {
+                            top: 10,
+                            bottom: 10
+                        },
+                        font: {
+                            size: 22
+                        }
+                    }
+                }
+            }
+        });
+    }
+    function CancelledTickets(){
+        if (myChart) {
+            myChart.destroy(); // Destroy the existing chart if it exists
+        }
+        var ticketCounts = @Html.Raw(Json.Serialize(ViewBag.CancelledTicketCount));
+        var providerDepartures = @Html.Raw(Json.Serialize(Model));
+        // Get the canvas element
+        var ctx = document.getElementById('ticketChart').getContext('2d');
+
+        // Create the chart
+        myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ticketCounts.map((_, index) => providerDepartures[index].vacanDepartureName + " (" + providerDepartures[index].pid+")"),
+                datasets: [{
+                    label: 'Sold Ticket Counts',
+                    data: ticketCounts,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        // Add more colors if needed
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        // Add more colors if needed
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: "Скасовані квитки за кожен рейс",
+                        padding: {
+                            top: 10,
+                            bottom: 10
+                        },
+                        font: {
+                            size: 22
+                        } 
+                    }
+                }
+            }
+        });
+    }
+
+    function getTicketsPerMonth(){
+
+        if (myChart) {
+            myChart.destroy(); // Destroy the existing chart if it exists
+        }
+
+        var soldTicketCounts = @Html.Raw(Json.Serialize(ViewBag.soldTicketPerMonth));
+        var cancelledTicketCounts = @Html.Raw(Json.Serialize(ViewBag.cancelledTicketPerMonth));
+
+        var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        var ctx = document.getElementById('ticketChart').getContext('2d');
+
+        var labels = [];
+        for (var i = 0; i < soldTicketCounts.length; i++) {
+            labels.push(months[i % months.length]); // Loop over months array
+        }
+
+
+        myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Sold Tickets',
+                    data: soldTicketCounts,
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }, {
+                    label: 'Cancelled Tickets',
+                    data: cancelledTicketCounts,
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    title: {
+                            display: true,
+                            text: "Статистика за  " + date.getFullYear() + " рік",
+                            padding: {
+                                top: 10,
+                                bottom: 10
+                            },
+                            font: {
+                                size: 22
+                            }
+                    }
+                }
+            }
+        });
+    }
+</script>

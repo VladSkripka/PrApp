@@ -1,0 +1,171 @@
+﻿@model IEnumerable<WebApplication2.Models.VacantDeparture>
+
+@{
+    ViewData["Title"] = "Index";
+    var currentPage = 1;
+    int pageSize = 6;
+    int totalPages = Math.Max(1, (int)Math.Ceiling((double)Model.Count() / pageSize));
+
+    if (ViewContext.HttpContext.Request.Query.ContainsKey("page"))
+    {
+        currentPage = Convert.ToInt32(ViewContext.HttpContext.Request.Query["page"]);
+    }
+    currentPage = Math.Min(Math.Max(currentPage, 1), totalPages);
+}
+
+<h1>Рейси</h1>
+<br>
+<div class="row">
+    <div class="col-md-3" @(User.IsInRole("Admin") ? "" : "hidden")>
+        <ul class="nav nav-pills flex-column">
+            <li class="nav-item">
+                <a class="nav-link " asp-area="" asp-controller="UserEditor" asp-action="AdminDashboard">Головна</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" asp-area="" asp-controller="VacantDepartures" asp-action="">Рейси</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" asp-area="" asp-controller="Trains" asp-action="">Типи потягів</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" asp-area="" asp-controller="Ticket" asp-action="">Квитки</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" asp-area="" asp-controller="UserEditor" asp-action="">Користувачі</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" asp-area="" asp-controller="UserEditor" asp-action="Roles">Ролі</a>
+            </li>
+        </ul>
+    </div>
+    <div class="col-md-3" @(User.IsInRole("Admin") ? "hidden" : "")>
+        <ul class="nav nav-pills flex-column">
+            <li class="nav-item">
+                <a class="nav-link" asp-area="" asp-controller="UserEditor" asp-action="Dashboard">Статистика</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" asp-area="" asp-controller="VacantDepartures" asp-action="">Віші Рейси</a>
+            </li>
+            <li class="nav-item">
+                <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                    <button type="submit" class="nav-link btn btn-link">Вийти</button>
+                </form>
+            </li>
+        </ul>  
+    </div>
+    <div class="col-md-9">
+        <p>
+            <a asp-action="Create">Створити новий</a>
+        </p>
+        <table class="table">
+            <thead class="dark">
+                <tr>
+                    <th>
+                        <label>№</label>
+                    </th>
+                    <th>
+                        <label>Назва відправлення</label>
+                    </th>
+                    <th>
+                        <label>Місце відпрвлення</label>
+                    </th>
+                    <th>
+                        <label>Місце прибуття</label>
+                    </th>
+                    <th>
+                        <label>Дата відправлення</label>
+                    </th>
+                    <th>
+                        <label>Дата прибуття</label>
+                    </th>
+                    <th>
+                        <label>Ціна</label>
+                    </th>
+                    <th>
+                        <label>Кількість вагонів</label>
+                    </th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                 @if (Model.Any())
+                {
+                    var pagedData = Model.Skip((currentPage - 1) * pageSize).Take(pageSize);
+                    foreach (var item in pagedData)
+                    {
+                        <tr>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.PID)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.vacanDepartureName)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.departureP)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.arrivalP)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.departureD)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.arrivalD)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.price)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.carriageCount)
+                            </td>
+                            <td>
+                                <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.vdID">Details</a>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+        <nav>
+            <ul class="pagination justify-content-center">
+                @if (currentPage > 1)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="?page=@(currentPage - 1)" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                }
+
+
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <li class="page-item @(currentPage == i ? "active" : "")">
+                        <a class="page-link" href="?page=@i">@i</a>
+                    </li>
+                }
+
+                @if (currentPage < totalPages)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="?page=@(currentPage + 1)" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<style>
+    .dark {
+        color: white;
+        background-color: black;
+        border-top-left-radius: 15px;
+        border-top-right-radius: 15px;
+    } 
+    td,th{
+        vertical-align: middle;
+    }
+</style>

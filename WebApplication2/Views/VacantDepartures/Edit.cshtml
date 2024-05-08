@@ -1,0 +1,94 @@
+﻿@model WebApplication2.Models.VacantDeparture
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+
+<div class="row con">
+    <h1><a class="back" onclick="history.back();">←</a> Редагування рейсу</h1>
+    <br />
+    <hr />
+    <div class="col-md-4">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="vdID" />
+            <div class="form-group">
+                <label class="control-label">Номер відправлення</label>
+                <input asp-for="PID" class="form-control" />
+                <span asp-validation-for="PID" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Назва відправлення</label>
+                <input asp-for="vacanDepartureName" class="form-control" />
+                <span asp-validation-for="vacanDepartureName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Місце відправлення</label>
+                <input asp-for="departureP" class="form-control" />
+                <span asp-validation-for="departureP" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Координати місця відправлення</label>
+                <input asp-for="departureCoord" class="form-control" />
+                <span asp-validation-for="departureCoord" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Місце прибуття</label>
+                <input asp-for="arrivalP" class="form-control" />
+                <span asp-validation-for="arrivalP" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Дата відправлення</label>
+                <input asp-for="departureD" class="form-control" />
+                <span asp-validation-for="departureD" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Дата прибуття</label>
+                <input asp-for="arrivalD" class="form-control" />
+                <span asp-validation-for="arrivalD" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Ціна квитка</label>
+                <input asp-for="price" class="form-control" />
+                <span asp-validation-for="price" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Кількість місць</label>
+                <input asp-for="seatsCount" class="form-control" />
+                <span asp-validation-for="seatsCount" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Кількість вагонів</label>
+                <input asp-for="carriageCount" class="form-control" />
+                <span asp-validation-for="carriageCount" class="text-danger"></span>
+            </div>
+            <br />
+            <div class="form-group">
+                <input type="submit" value="Змінити" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+<style>
+    .con {
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .back {
+        font: 14pt;
+        color: red;
+        cursor: pointer;
+        text-decoration: none;
+    }
+</style>
