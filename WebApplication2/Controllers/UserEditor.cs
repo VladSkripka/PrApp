@@ -25,7 +25,7 @@ namespace WebApplication2.Controllers
         // GET: UserEditor
         public async Task<IActionResult> Index()
         {
-            var authUsers = _context.Users.Where(user => !string.IsNullOrEmpty(user.UserName)).Count();
+            var authUsers = _context.Users.Count(user => !string.IsNullOrEmpty(user.UserName));
             ViewBag.Authenticated = authUsers;
             var totalUsers = _context.Users.Count();
             ViewBag.TotalUsers = totalUsers;
