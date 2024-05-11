@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WebApplication2.Data;
+using WebApplication2.Infrastructure.Interfaces;
 
 namespace WebApplication2
 {
@@ -12,6 +13,10 @@ namespace WebApplication2
 
             // Add services to the container.
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
+            var sendGridAPI = builder.Configuration.GetSection("APIs")["SEND_GRID_API"];
+            builder.Services.AddSingleton<ISendGridApiService>(new SendGridSettings(sendGridAPI));//SendGrid
+
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(connectionString));
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();

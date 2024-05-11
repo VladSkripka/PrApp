@@ -3,17 +3,17 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using System.Diagnostics;
 using WebApplication2.Data;
 using WebApplication2.Models;
-using System.Net.Http;
 using ceTe.DynamicPDF;
-using ceTe.DynamicBarcode.Creator;
 using ceTe.DynamicPDF.PageElements;
 using ceTe.DynamicPDF.PageElements.BarCoding;
-using Microsoft.AspNetCore.Http.HttpResults;
-using System.IO;
+using SendGrid;
+using SendGrid.Helpers.Mail;
 using System.Net.Mime;
+using NuGet.Packaging;
+using WebApplication2.Infrastructure.Interfaces;
+using System.IO;
 
 namespace WebApplication2.Controllers
 {
@@ -22,24 +22,27 @@ namespace WebApplication2.Controllers
 
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly ISendGridApiService _sendGridApiService;
         private const double EarthRadiusKm = 6371;
 
-        public SearchController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+        public SearchController(ApplicationDbContext context, UserManager<IdentityUser> userManager, ISendGridApiService sendGridApiService)
         {
             _context = context;
             _userManager = userManager;
+            _sendGridApiService = sendGridApiService;
         }
 
 
         // GET: SearchController
         public ActionResult Index()
         {
+            SendEmail();
             return View();
         }
 
         public ActionResult Search(Search? model, string? lat, string? lon, string? nearestModel)
         {
-            model.searchTime= DateTime.Now;
+            model.searchTime = DateTime.Now;
 
             /*lat = "50,438607"; // test data for geo
             *lon = "30,486810";
@@ -60,46 +63,46 @@ namespace WebApplication2.Controllers
             else
             {
                 var newModel = JsonConvert.DeserializeObject<Search>(nearestModel);
-                 results = _context.VacantDepartures
-                .Where(departure =>
-                    departure.departureP.Contains(newModel.departurePoint) &&
-                    departure.arrivalP.Contains(newModel.destinationPoint) &&
-                    departure.departureD > newModel.searchTime.AddMinutes(10) &&
-                    departure.departureD > newModel.departureDate)
-                .OrderBy(departure => departure.departureD)
-                .ToList();
+                results = _context.VacantDepartures
+               .Where(departure =>
+                   departure.departureP.Contains(newModel.departurePoint) &&
+                   departure.arrivalP.Contains(newModel.destinationPoint) &&
+                   departure.departureD > newModel.searchTime.AddMinutes(10) &&
+                   departure.departureD > newModel.departureDate)
+               .OrderBy(departure => departure.departureD)
+               .ToList();
             }
 
             var filteredResults = new List<VacantDeparture>();
 
             foreach (var result in results)
             {
-                var SoldTicketCount = _context.TicketModels.Count(ticket => ticket.vacantDepatureID == result.vdID && ticket.status=="sold");
-                if(result.seatsCount - SoldTicketCount > 0 ) 
+                var SoldTicketCount = _context.TicketModels.Count(ticket => ticket.vacantDepatureID == result.vdID && ticket.status == "sold");
+                if (result.seatsCount - SoldTicketCount > 0)
                 {
-                    string[] coords =  result.departureCoord.Split(' ');
+                    string[] coords = result.departureCoord.Split(' ');
 
                     if (result.departureD > model.searchTime.AddMinutes(10))
                     {
                         filteredResults.Add(result);
                     }
-                    else if(result.departureD < model.searchTime.AddMinutes(10) && CalculateDistance(lat, lon, coords[0], coords[1]) < 100)
+                    else if (result.departureD < model.searchTime.AddMinutes(10) && CalculateDistance(lat, lon, coords[0], coords[1]) < 100)
                     {
                         filteredResults.Add(result);
                     }
-                    
+
                 }
             }
-            
+
             TempData["SearchModel"] = JsonConvert.SerializeObject(model);
             ViewBag.SearchModel = model;
             return View(filteredResults);
         }
 
-        public ActionResult SecondTicketSearch(string selectedCarriage, string selectedSeat, int depID, DateTime returnDate) 
+        public ActionResult SecondTicketSearch(string selectedCarriage, string selectedSeat, int depID, DateTime returnDate)
         {
             var depModel = _context.VacantDepartures.FirstOrDefault(dearture => dearture.vdID == depID);
-            
+
             Search searchModel = new Search();
             searchModel.searchTime = DateTime.Now;
             searchModel.departurePoint = depModel.arrivalP;
@@ -158,7 +161,7 @@ namespace WebApplication2.Controllers
 
             ViewBag.SeatsCount = vacantDeparture.Train.trainSeats;
             ViewBag.CarriageCount = vacantDeparture.carriageCount;
-            if(vacantDeparture.Train.trainRows != 0)
+            if (vacantDeparture.Train.trainRows != 0)
             {
                 ViewBag.Rows = vacantDeparture.Train.trainRows;
             }
@@ -168,7 +171,7 @@ namespace WebApplication2.Controllers
             }
 
             List<List<int>> occupiedSeats = new List<List<int>>();
-            for (int i = 1; i<=vacantDeparture.carriageCount; i++)
+            for (int i = 1; i <= vacantDeparture.carriageCount; i++)
             {
                 occupiedSeats.Add(GetVacantSeats(vacantDeparture, i));
             }
@@ -226,7 +229,7 @@ namespace WebApplication2.Controllers
         public ActionResult SummingUp(int id, string SelectedCarriage, string SelectedSeat, int? mainVacDepId, string? mainChosenSeats, string? mainChosenCars)
         {
             var returnDep = _context.VacantDepartures.FirstOrDefault(departure => departure.vdID == id);
-            
+
 
             if (returnDep == null)
             {
@@ -234,7 +237,7 @@ namespace WebApplication2.Controllers
             }
 
             var uid = _userManager.GetUserId(User);
-            var currentUser = _context.Users.FirstOrDefault(u => u.Id== uid);
+            var currentUser = _context.Users.FirstOrDefault(u => u.Id == uid);
             if (currentUser == null)
             {
                 ViewBag.isPhoneEmpty = false;
@@ -280,19 +283,19 @@ namespace WebApplication2.Controllers
             return View(tickets);
         }
 
-        public async Task<IActionResult> DownloadTicket (string tickets, string passengers, string totalSum, string? email, string? phone, string ticketsType)
+        public async Task<IActionResult> DownloadTicket(string tickets, string passengers, string totalSum, string? email, string? phone, string ticketsType)
         {
             var ticketList = JsonConvert.DeserializeObject<List<TicketModel>>(tickets);
             var currentUser = new IdentityUser();
-
+            var ticketsPaths = new List<string>(ticketList!.Capacity);
             string[] passangersWithAdditionalOptions = passengers.Split(",");
             string[] passanger = new string[passangersWithAdditionalOptions.Length];
             string[] additionalOptions = new string[passangersWithAdditionalOptions.Length];
 
             string[] ticketType = ticketsType.Split(",");
-            
+
             int index = 0;
-            foreach(var item in passangersWithAdditionalOptions)
+            foreach (var item in passangersWithAdditionalOptions)
             {
                 passanger[index] = item.Split(":")[0];
                 additionalOptions[index] = item.Split(":")[1];
@@ -321,22 +324,15 @@ namespace WebApplication2.Controllers
                 item.PurchaseDate = DateTime.Now;
                 item.addtionalOptions = additionalOptions[index];
                 item.ticketAgeType = ticketType[index];
-                GeneratePDFTicket(item);
+                ticketsPaths.Add(GeneratePDFTicket(item));
                 index++;
                 if (ModelState.IsValid)
                 {
                     _context.Add(item);
                     await _context.SaveChangesAsync();
                 }
-                else
-                {
-                    // Log validation errors
-                    foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
-                    {
-                        Console.WriteLine(error.ErrorMessage);
-                    }
-                }
             }
+            SendEmail(ticketsPaths, currentUser);
             return View(ticketList);
         }
 
@@ -348,7 +344,6 @@ namespace WebApplication2.Controllers
             // Create FileContentResult for each file
             foreach (var ticket in ticketList)
             {
-                Console.WriteLine(ticket.ticketPID);
                 // Get the file path for the PDF
                 string projectDirectory = Directory.GetCurrentDirectory();
                 string relativePath = @"wwwroot/tickets";
@@ -386,14 +381,14 @@ namespace WebApplication2.Controllers
 
             return response;
         }
-        
+
         //Support methods
         public List<int> GetVacantSeats(VacantDeparture model, int index)
         {
             List<int> seats = new List<int>();
             var ticketsPerOneCarriage = _context.TicketModels
                 .Where(
-                        ticket => ticket.vacantDepatureID == model.vdID && 
+                        ticket => ticket.vacantDepatureID == model.vdID &&
                         ticket.carriageNumber == index &&
                         ticket.status == "sold")
                 .ToList();
@@ -426,7 +421,7 @@ namespace WebApplication2.Controllers
                 double lon = Convert.ToDouble(lon1.Replace(".", ","));
                 double lat_d = Convert.ToDouble(lat2);
                 double lon_d = Convert.ToDouble(lon2);
-                Console.WriteLine(lat + " "+ lon + " " + lat_d + " " + lon_d);
+                Console.WriteLine(lat + " " + lon + " " + lat_d + " " + lon_d);
 
                 double radLat1 = Math.PI * lat / 180;
                 double radLon1 = Math.PI * lon / 180;
@@ -445,14 +440,14 @@ namespace WebApplication2.Controllers
                 double distance = EarthRadiusKm * c * 1000; // Distance in meters
                 return distance;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
                 return -1;
             }
-  
+
         }
-        public static void GeneratePDFTicket(TicketModel ticket)
+        public static string GeneratePDFTicket(TicketModel ticket)
         {
             Document document = new Document();
             Page page = new Page(PageSize.Letter, PageOrientation.Portrait, 54.0f);
@@ -502,7 +497,6 @@ namespace WebApplication2.Controllers
             page.Elements.Add(table);
 
             // Add QR code
-
             labelY += 200; // Starting Y position for labels
 
             Label passengerLabel = new Label($"Passenger: {ticket.passengerFullName}", 20, labelY, 504, 100, Font.Helvetica, 18);
@@ -532,8 +526,56 @@ namespace WebApplication2.Controllers
             string relativePath = @"wwwroot\tickets"; // Use backslash for directory separator
 
             string fullPath = System.IO.Path.Combine(projectDirectory, relativePath);
+            string ticketPath = System.IO.Path.Combine(fullPath, $"{ticket.ticketPID}.pdf");
 
-            document.Draw(System.IO.Path.Combine(fullPath, $"{ticket.ticketPID}.pdf"));
+            document.Draw(ticketPath);
+
+            return ticketPath;
+        }
+        public void SendEmail(List<string> tickets, IdentityUser user)
+        {
+            var a = _sendGridApiService.GetSendGridApiKey();
+            var client = new SendGridClient(a);
+
+            var msg = new SendGridMessage()
+            {
+                From = new EmailAddress("test@example.com", "DX Team"),
+                Subject = "Sending with Twilio SendGrid is Fun",
+                PlainTextContent = "and easy to do anywhere, even with C#",
+                HtmlContent = "<strong>and easy to do anywhere, even with C#</strong>"
+            };
+            msg.AddTo(new EmailAddress("vladskripka6@gmail.com", "Test User"));
+            var response = client.SendEmailAsync(msg).ConfigureAwait(false);
+        }
+        //Test send
+        public async Task SendEmail()
+        {
+            var a = _sendGridApiService.GetSendGridApiKey();
+            var client = new SendGridClient(a);
+
+            var from = new EmailAddress("skripka402@ukr.net", "Example User");
+            var subject = "Sending with SendGrid is Fun";
+            var to = new EmailAddress("vladskripka6@gmail.com", "Example User");
+            var plainTextContent = "and easy to do anywhere, even with C#";
+            var htmlContent = "<strong>and easy to do anywhere, even with C#</strong>";
+
+            string projectDirectory = Directory.GetCurrentDirectory();
+            string relativePath = @"wwwroot/tickets";
+
+            string fullPath = System.IO.Path.Combine(projectDirectory, relativePath);
+            var attachment = await GetAttachmentContentAsync(fullPath + "/6634.pdf");
+            var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, htmlContent);
+            msg.AddAttachment("6634.pdf", attachment, "application/pdf");
+
+            // Add the attachment to the message
+
+            var response = client.SendEmailAsync(msg);
+        }
+
+        private async Task<string> GetAttachmentContentAsync(string attachmentFilePath)
+        {
+            byte[] bytes = await System.IO.File.ReadAllBytesAsync(attachmentFilePath);
+            return Convert.ToBase64String(bytes);
         }
     }
 }
