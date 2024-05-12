@@ -36,7 +36,7 @@ namespace WebApplication2.Controllers
         // GET: SearchController
         public ActionResult Index()
         {
-            SendEmail();
+            //SendEmail();
             return View();
         }
 
@@ -532,46 +532,39 @@ namespace WebApplication2.Controllers
 
             return ticketPath;
         }
-        public void SendEmail(List<string> tickets, IdentityUser user)
+        public async Task SendEmail(List<string> ticketsPaths, IdentityUser user)
         {
-            var a = _sendGridApiService.GetSendGridApiKey();
-            var client = new SendGridClient(a);
+            var api = _sendGridApiService.GetSendGridApiKey();
+            var client = new SendGridClient(api);
 
-            var msg = new SendGridMessage()
-            {
-                From = new EmailAddress("test@example.com", "DX Team"),
-                Subject = "Sending with Twilio SendGrid is Fun",
-                PlainTextContent = "and easy to do anywhere, even with C#",
-                HtmlContent = "<strong>and easy to do anywhere, even with C#</strong>"
-            };
-            msg.AddTo(new EmailAddress("vladskripka6@gmail.com", "Test User"));
-            var response = client.SendEmailAsync(msg).ConfigureAwait(false);
-        }
-        //Test send
-        public async Task SendEmail()
-        {
-            var a = _sendGridApiService.GetSendGridApiKey();
-            var client = new SendGridClient(a);
+            var from = new EmailAddress("skripka402@ukr.net", "TicketPoint");
+            var subject = "Квитки";
+            var to = new EmailAddress($"{user.Email}");
+            var plainTextContent = $"Шановний клієнт, дякуємо, що обрали саме нас. Ваші замовлені квитки знаходяться у закріплених файлах, доданих до даного листа";
+            var htmlContent = $"<p>Шановний клієнт,<br> дякуємо, що обрали саме нас. Ваші замовлені квитки знаходяться у закріплених файлах, доданих до даного листа</p>";
 
-            var from = new EmailAddress("skripka402@ukr.net", "Example User");
-            var subject = "Sending with SendGrid is Fun";
-            var to = new EmailAddress("vladskripka6@gmail.com", "Example User");
-            var plainTextContent = "and easy to do anywhere, even with C#";
-            var htmlContent = "<strong>and easy to do anywhere, even with C#</strong>";
-
-            string projectDirectory = Directory.GetCurrentDirectory();
-            string relativePath = @"wwwroot/tickets";
-
-            string fullPath = System.IO.Path.Combine(projectDirectory, relativePath);
-            var attachment = await GetAttachmentContentAsync(fullPath + "/6634.pdf");
             var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, htmlContent);
-            msg.AddAttachment("6634.pdf", attachment, "application/pdf");
-
-            // Add the attachment to the message
+            
+            foreach (var item in ticketsPaths)
+            {
+                var name = item.Split("\\")[item.Split("\\").Length - 1];
+                var attachment = await GetAttachmentContentAsync(item);
+                msg.AddAttachment($"{name}.pdf", attachment, "application/pdf");
+            }
 
             var response = client.SendEmailAsync(msg);
         }
 
+        /*public async Task SendEmail()
+        {
+            Console.WriteLine("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+            string projectDirectory = Directory.GetCurrentDirectory();
+            string relativePath = @"wwwroot/tickets/6634.pdf";
+            string fullPath = System.IO.Path.Combine(projectDirectory, relativePath);
+            string file = fullPath.Split("/")[fullPath.Split("/").Length - 1];
+            Console.WriteLine(file + " ffffffffffffffffffffff");
+        }
+        */
         private async Task<string> GetAttachmentContentAsync(string attachmentFilePath)
         {
             byte[] bytes = await System.IO.File.ReadAllBytesAsync(attachmentFilePath);
