@@ -15,12 +15,12 @@ namespace WebApplication2.Controllers
     public class TrainsController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly FileService _fileService;
-        private readonly TrainService _trainService;
+        private readonly IFileService _fileService;
+        private readonly ITrainService _trainService;
 
         public TrainsController(ApplicationDbContext context,
-            FileService fileService,
-            TrainService trainService)
+            IFileService fileService,
+            ITrainService trainService)
         {
             _context = context;
             _fileService = fileService;
@@ -30,15 +30,14 @@ namespace WebApplication2.Controllers
         // GET: Trains
         public async Task<IActionResult> Index()
         {
-              return _context.Trains != null ? 
-                          View(await _context.Trains.ToListAsync()) :
-                          Problem("Entity set 'ApplicationDbContext.Trains'  is null.");
+            var trains = await _trainService.GetTrainsAsync();
+            return View(trains);
         }
 
         // GET: Trains/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null || _context.Trains == null)
+            if (id == null)
             {
                 return NotFound();
             }
@@ -65,7 +64,7 @@ namespace WebApplication2.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CreateTrainModelIn trainModel, 
+        public async Task<IActionResult> Create(CreateTrainModelIn trainModel,
             IFormFile schema)
         {
             var schemaPath = await _fileService.SaveFileAsync(schema);
@@ -162,14 +161,14 @@ namespace WebApplication2.Controllers
             {
                 _context.Trains.Remove(train);
             }
-            
+
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool TrainExists(int id)
         {
-          return (_context.Trains?.Any(e => e.trainTypeID == id)).GetValueOrDefault();
+            return (_context.Trains?.Any(e => e.trainTypeID == id)).GetValueOrDefault();
         }
     }
 }

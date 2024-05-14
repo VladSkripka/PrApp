@@ -34,6 +34,7 @@ namespace WebApplication2.Controllers
         // GET: SearchController
         public ActionResult Index()
         {
+
             return View();
         }
 

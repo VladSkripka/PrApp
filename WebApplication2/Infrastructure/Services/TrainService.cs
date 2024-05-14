@@ -1,9 +1,16 @@
-﻿using WebApplication2.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using WebApplication2.Data;
 using WebApplication2.Models;
 
 namespace WebApplication2.Infrastructure.Services;
 
-public class TrainService
+public interface ITrainService
+{
+    Task CreateAsync(CreateTrainModelIn trainModel, string schemaPath);
+    Task<List<Train>> GetTrainsAsync();
+}
+
+public class TrainService : ITrainService
 {
     private readonly ApplicationDbContext _context;
 
@@ -23,5 +30,10 @@ public class TrainService
         };
         _context.Trains.Add(train);
         await _context.SaveChangesAsync();
+    }
+
+    public Task<List<Train>> GetTrainsAsync()
+    {
+        return _context.Trains.ToListAsync();
     }
 }

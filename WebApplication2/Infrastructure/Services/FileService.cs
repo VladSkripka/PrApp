@@ -1,6 +1,11 @@
 ﻿namespace WebApplication2.Infrastructure.Services;
 
-public class FileService
+public interface IFileService
+{
+    Task<string> SaveFileAsync(IFormFile? schema);
+}
+
+public class FileService : IFileService
 {
     public async Task<string> SaveFileAsync(IFormFile? schema)
     {
