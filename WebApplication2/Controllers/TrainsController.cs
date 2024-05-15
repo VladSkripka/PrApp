@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using WebApplication2.Data;
+using WebApplication2.Infrastructure.Services;
 using WebApplication2.Models;
 
 namespace WebApplication2.Controllers
@@ -14,30 +15,36 @@ namespace WebApplication2.Controllers
     public class TrainsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IFileService _fileService;
+        private readonly ITrainService _trainService;
 
-        public TrainsController(ApplicationDbContext context)
+        public TrainsController(ApplicationDbContext context,
+            IFileService fileService,
+            ITrainService trainService)
         {
             _context = context;
+            _fileService = fileService;
+            _trainService = trainService;
         }
 
         // GET: Trains
         public async Task<IActionResult> Index()
         {
-              return _context.Trains != null ? 
-                          View(await _context.Trains.ToListAsync()) :
-                          Problem("Entity set 'ApplicationDbContext.Trains'  is null.");
+            var trains = await _trainService.GetTrainsAsync();
+            return View(trains);
         }
 
         // GET: Trains/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null || _context.Trains == null)
+            if (id == null)
             {
                 return NotFound();
             }
 
             var train = await _context.Trains
                 .FirstOrDefaultAsync(m => m.trainTypeID == id);
+
             if (train == null)
             {
                 return NotFound();
@@ -57,40 +64,18 @@ namespace WebApplication2.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Train train, IFormFile schema)
+        public async Task<IActionResult> Create(CreateTrainModelIn trainModel,
+            IFormFile schema)
         {
-            if (schema != null && schema.Length > 0)
-            {
-
-                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(schema.FileName);
-
-                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", fileName);
-
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
-                {
-                    await schema.CopyToAsync(fileStream);
-                }
-
-                train.schemaPath = "/images/" + fileName;
-
-            }
+            var schemaPath = await _fileService.SaveFileAsync(schema);
 
             if (ModelState.IsValid)
             {
-                _context.Add(train);
-                await _context.SaveChangesAsync();
+                await _trainService.CreateAsync(trainModel, schemaPath!);
                 return RedirectToAction(nameof(Index));
             }
-            else
-            {
-                // Log validation errors
-                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
-                {
-                    Console.WriteLine(error.ErrorMessage);
-                }
-            }
-            return View(train);
-        
+
+            return View(trainModel);
         }
 
         // GET: Trains/Edit/5
@@ -176,14 +161,14 @@ namespace WebApplication2.Controllers
             {
                 _context.Trains.Remove(train);
             }
-            
+
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool TrainExists(int id)
         {
-          return (_context.Trains?.Any(e => e.trainTypeID == id)).GetValueOrDefault();
+            return (_context.Trains?.Any(e => e.trainTypeID == id)).GetValueOrDefault();
         }
     }
 }

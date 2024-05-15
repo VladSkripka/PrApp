@@ -14,6 +14,7 @@ using ceTe.DynamicPDF.PageElements.BarCoding;
 using Microsoft.AspNetCore.Http.HttpResults;
 using System.IO;
 using System.Net.Mime;
+using WebApplication2.Infrastructure.Extensions;
 
 namespace WebApplication2.Controllers
 {
@@ -30,10 +31,10 @@ namespace WebApplication2.Controllers
             _userManager = userManager;
         }
 
-
         // GET: SearchController
         public ActionResult Index()
         {
+
             return View();
         }
 
@@ -419,30 +420,30 @@ namespace WebApplication2.Controllers
         }
         public static double CalculateDistance(string lat1, string lon1, string lat2, string lon2)
         {
-            // Convert latitude and longitude from degrees to radians
             try
             {
-                double lat = Convert.ToDouble(lat1.Replace(".", ","));
-                double lon = Convert.ToDouble(lon1.Replace(".", ","));
-                double lat_d = Convert.ToDouble(lat2);
-                double lon_d = Convert.ToDouble(lon2);
-                Console.WriteLine(lat + " "+ lon + " " + lat_d + " " + lon_d);
+                var lat = lat1.ToDouble();
+                var lon = lon1.ToDouble();
+                var lat_d = lat2.ToDouble();
+                var lon_d = lon2.ToDouble();
 
-                double radLat1 = Math.PI * lat / 180;
-                double radLon1 = Math.PI * lon / 180;
-                double radLat2 = Math.PI * lat_d / 180;
-                double radLon2 = Math.PI * lon_d / 180;
+                Console.WriteLine($"{lat} {lon} {lat_d} {lon_d}");
+
+                var radLat1 = Math.PI * lat / 180;
+                var radLon1 = Math.PI * lon / 180;
+                var radLat2 = Math.PI * lat_d / 180;
+                var radLon2 = Math.PI * lon_d / 180;
 
                 // Calculate the change in coordinates
-                double deltaLat = radLat2 - radLat1;
-                double deltaLon = radLon2 - radLon1;
+                var deltaLat = radLat2 - radLat1;
+                var deltaLon = radLon2 - radLon1;
 
                 // Apply Haversine formula
-                double a = Math.Sin(deltaLat / 2) * Math.Sin(deltaLat / 2) +
-                           Math.Cos(radLat1) * Math.Cos(radLat2) *
-                           Math.Sin(deltaLon / 2) * Math.Sin(deltaLon / 2);
-                double c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
-                double distance = EarthRadiusKm * c * 1000; // Distance in meters
+                var a = Math.Sin(deltaLat / 2) * Math.Sin(deltaLat / 2) +
+                        Math.Cos(radLat1) * Math.Cos(radLat2) *
+                        Math.Sin(deltaLon / 2) * Math.Sin(deltaLon / 2);
+                var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+                var distance = EarthRadiusKm * c * 1000; // Distance in meters
                 return distance;
             }
             catch(Exception ex)
@@ -450,7 +451,6 @@ namespace WebApplication2.Controllers
                 Console.WriteLine(ex.Message);
                 return -1;
             }
-  
         }
         public static void GeneratePDFTicket(TicketModel ticket)
         {

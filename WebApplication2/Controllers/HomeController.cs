@@ -17,6 +17,8 @@ namespace WebApplication2.Controllers
 
         public IActionResult Index()
         {
+            _logger.LogTrace("Home/Index was invoked");
+
             if (User.IsInRole("Provider"))
             {
                 return RedirectToAction("Dashboard", "UserEditor");
