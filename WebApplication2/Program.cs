@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WebApplication2.Data;
 using WebApplication2.Infrastructure.Interfaces;
+using WebApplication2.Infrastructure.Services;
 
 namespace WebApplication2
 {
@@ -29,6 +30,9 @@ namespace WebApplication2
             builder.Services.AddHttpClient();//Client factory
 
             builder.Services.AddSession();
+
+            builder.Services.AddScoped<IVacantDepartureService, VacantDepartureService>();//Service for VacantDeparture
+            builder.Services.AddScoped<ITrainService, TrainService>();//Service for Trains
 
             var app = builder.Build();
 

@@ -537,11 +537,11 @@ namespace WebApplication2.Controllers
             var api = _sendGridApiService.GetSendGridApiKey();
             var client = new SendGridClient(api);
 
-            var from = new EmailAddress("skripka402@ukr.net", "TicketPoint");
-            var subject = "Квитки";
+            var from = new EmailAddress("skripka402@ukr.net", "TicketPoint Team");
+            var subject = "Замовлені квитки";
             var to = new EmailAddress($"{user.Email}");
-            var plainTextContent = $"Шановний клієнт, дякуємо, що обрали саме нас. Ваші замовлені квитки знаходяться у закріплених файлах, доданих до даного листа";
-            var htmlContent = $"<p>Шановний клієнт,<br> дякуємо, що обрали саме нас. Ваші замовлені квитки знаходяться у закріплених файлах, доданих до даного листа</p>";
+            var plainTextContent = System.IO.File.ReadAllText(@"Templates/responseTemplate.txt");
+            var htmlContent = System.IO.File.ReadAllText(@"Templates/responseTemplate.txt");
 
             var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, htmlContent);
             
@@ -549,7 +549,7 @@ namespace WebApplication2.Controllers
             {
                 var name = item.Split("\\")[item.Split("\\").Length - 1];
                 var attachment = await GetAttachmentContentAsync(item);
-                msg.AddAttachment($"{name}.pdf", attachment, "application/pdf");
+                msg.AddAttachment($"{name}", attachment, "application/pdf");
             }
 
             var response = client.SendEmailAsync(msg);
@@ -558,11 +558,16 @@ namespace WebApplication2.Controllers
         /*public async Task SendEmail()
         {
             Console.WriteLine("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
-            string projectDirectory = Directory.GetCurrentDirectory();
-            string relativePath = @"wwwroot/tickets/6634.pdf";
-            string fullPath = System.IO.Path.Combine(projectDirectory, relativePath);
-            string file = fullPath.Split("/")[fullPath.Split("/").Length - 1];
-            Console.WriteLine(file + " ffffffffffffffffffffff");
+            var api = _sendGridApiService.GetSendGridApiKey();
+            var client = new SendGridClient(api);
+
+            var from = new EmailAddress("skripka402@ukr.net", "TicketPoint Team");
+            var subject = "Замовлені квитки";
+            var to = new EmailAddress($"vladskripka6@gmail.com");
+            var plainTextContent = System.IO.File.ReadAllText(@"Templates/responseTemplate.txt");
+            var htmlContent = System.IO.File.ReadAllText(@"Templates/responseTemplate.txt");
+            var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, htmlContent);
+            var response = client.SendEmailAsync(msg);
         }
         */
         private async Task<string> GetAttachmentContentAsync(string attachmentFilePath)

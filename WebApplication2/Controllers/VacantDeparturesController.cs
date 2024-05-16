@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using WebApplication2.Data;
+using WebApplication2.Infrastructure.Services;
 using WebApplication2.Models;
 
 namespace WebApplication2.Controllers
@@ -17,13 +18,19 @@ namespace WebApplication2.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
-        private readonly IHttpClientFactory _clientFactory;
+        private readonly IVacantDepartureService _vds;
+        private readonly ITrainService _trainService;
 
-        public VacantDeparturesController(ApplicationDbContext context, UserManager<IdentityUser> userManager, IHttpClientFactory clientFactory)
+        public VacantDeparturesController(
+            ApplicationDbContext context, 
+            UserManager<IdentityUser> userManager,
+            IVacantDepartureService vds,
+            ITrainService trainService)
         {
             _context = context;
             _userManager = userManager;
-            _clientFactory = clientFactory;
+            _vds = vds;
+            _trainService = trainService;
         }
 
         // GET: VacantDepartures
@@ -31,16 +38,13 @@ namespace WebApplication2.Controllers
         {
             if (User.IsInRole("Admin"))
             {
-                return _context.VacantDepartures != null ?
-                          View(await _context.VacantDepartures.ToListAsync()) :
-                          Problem("Entity set 'ApplicationDbContext.TicketModels'  is null.");
+                var vacantDepatures = await _vds.GetVacantDepartures();
+                return View(vacantDepatures);
             }
             else
             {
-                var id = _userManager.GetUserId(User);
-                return _context.VacantDepartures != null ?
-                          View(await _context.VacantDepartures.Where(dep => dep.provider.Id == id).ToListAsync()) :
-                          Problem("Entity set 'ApplicationDbContext.TicketModels'  is null.");
+                var vacantDepatures = await _vds.GetVacantDepartures(_userManager.GetUserId(User));
+                return View(vacantDepatures);
             }
         }
 
@@ -52,57 +56,35 @@ namespace WebApplication2.Controllers
                 return NotFound();
             }
 
-            var vacantDeparture = await _context.VacantDepartures
-                .Include(vd => vd.Train) // Include the Train navigation property
-                .Include(vd => vd.provider) // Include the provider navigation property
-                .FirstOrDefaultAsync(m => m.vdID == id);
-           
+            var vacantDeparture = _vds.GetVacantDepartureDetails(id);
+
             if (vacantDeparture == null)
             {
                 return NotFound();
             }
-            vacantDeparture.Train = _context.Trains.FirstOrDefault(train => train.trainTypeID == vacantDeparture.Train.trainTypeID);
+
+            vacantDeparture.Train = _trainService.GetTrainById(vacantDeparture.Train.trainTypeID);
+            
             return View(vacantDeparture);
         }
 
         // GET: VacantDepartures/Create
         public IActionResult Create()
         {
-            List<Train> trainTypes = _context.Trains.ToList();
-            // Pass the list to the view
+            List<Train> trainTypes = _trainService.GetTrains();
             ViewBag.TrainTypes = new SelectList(trainTypes, "trainTypeID", "typeName");
             return View();
         }
 
-        // POST: VacantDepartures/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(VacantDeparture vacantDeparture)
         {
-            vacantDeparture.Train = _context.Trains.FirstOrDefault(train => train.trainTypeID == vacantDeparture.Train.trainTypeID);
-            vacantDeparture.seatsCount = vacantDeparture.carriageCount * vacantDeparture.Train.trainSeats;
-
+            vacantDeparture.Train = _trainService.GetTrainById(vacantDeparture.Train.trainTypeID);
+            vacantDeparture.seatsCount = _vds.CalculateTotalSeatsInDeparture(vacantDeparture.carriageCount, vacantDeparture.Train.trainSeats);
             var userId = _userManager.GetUserId(User);
-            vacantDeparture.provider = _context.Users.FirstOrDefault(user => user.Id == userId);
-
-            if (ModelState.IsValid)
-            { 
-                _context.Add(vacantDeparture);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            else
-            {
-                // Log validation errors
-                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
-                {
-                    Console.WriteLine(error.ErrorMessage);
-                }
-            }
-
-            return View(vacantDeparture);
+            await _vds.CreateAsync(vacantDeparture, userId);
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: VacantDepartures/Edit/5
@@ -125,7 +107,7 @@ namespace WebApplication2.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("vdID,PID,vacanDepartureName,departureP,departureCoord,arrivalP,departureD,arrivalD,price,seatsCount, carriageCount")] VacantDeparture vacantDeparture)
+        public async Task<IActionResult> Edit(int id, VacantDeparture vacantDeparture)
         {
             if (id != vacantDeparture.vdID)
             {
@@ -136,8 +118,7 @@ namespace WebApplication2.Controllers
             {
                 try
                 {
-                    _context.Update(vacantDeparture);
-                    await _context.SaveChangesAsync();
+                    await _vds.EditAsync(vacantDeparture);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -178,17 +159,7 @@ namespace WebApplication2.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            if (_context.VacantDepartures == null)
-            {
-                return Problem("Entity set 'ApplicationDbContext.VacantDepartures'  is null.");
-            }
-            var vacantDeparture = await _context.VacantDepartures.FindAsync(id);
-            if (vacantDeparture != null)
-            {
-                _context.VacantDepartures.Remove(vacantDeparture);
-            }
-            
-            await _context.SaveChangesAsync();
+            await _vds.DeleteAsync(id);
             return RedirectToAction(nameof(Index));
         }
 
